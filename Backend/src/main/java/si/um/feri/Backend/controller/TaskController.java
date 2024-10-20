@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 @RestController
+@CrossOrigin("http://localhost:5173")
 public class TaskController {
     Logger logger = Logger.getLogger(TaskController.class.getName());
 
@@ -26,23 +27,36 @@ public class TaskController {
         return taskRepository.findAll();
     }
 
-    @GetMapping("/tasks/{id}")
-    public Optional<Task> getTaskById(@PathParam("id") int id) {
-        logger.info("Getting task by id:" + id);
-        return taskRepository.findById(id);
+    @GetMapping("/task/{id}")
+    Task getTaskById(@PathVariable int id) {
+        logger.info("Getting task with id:" + id);
+        return taskRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Task not found with id:" + id));
     }
 
-    @PutMapping("tasks")
-    public void putTask(Task task) {
-        logger.info("Updating task:" + task.getId());
-        taskRepository.save(task);
+    @PutMapping("task/{id}")
+    Task updateTask(@RequestBody Task newTask, @PathVariable int id) {
+        logger.info("Updating task with id:" + id);
+        return taskRepository.findById(id)
+                .map(task -> {
+                    task.setTaskName(newTask.getTaskName());
+                    task.setTaskDescription(newTask.getTaskDescription());
+                    task.setTaskGroup(newTask.getTaskGroup());
+                    task.setStatus(newTask.isStatus());
+                    return taskRepository.save(task);
+                }).orElseThrow(() -> new RuntimeException("Task not found with id:" + id));
+    }
+
+    @DeleteMapping("task/{id}")
+    String deleteTask(@PathVariable int id) {
+        logger.info("Deleting task with id:" + id);
+        taskRepository.deleteById(id);
+        return "Task with id: " + id + " has been deleted.";
     }
 
     @PostMapping("/tasks")
-    public Task newTask(Task task) {
+    Task newTask(@RequestBody Task newTask) {
         logger.info("Creating new task");
-        Task newTask = new Task(task.getTaskName(), task.getTaskDescription(), task.getTaskGroup(), task.isStatus());
-        taskRepository.save(newTask);
-        return newTask;
+        return taskRepository.save(newTask);
     }
 }

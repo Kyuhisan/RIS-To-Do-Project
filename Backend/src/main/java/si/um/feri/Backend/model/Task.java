@@ -17,7 +17,7 @@ public class Task {
     private String taskName;
     private String taskDescription;
     private String taskGroup;
-    private boolean status;
+    private boolean status; // true = done, false = not done, null = in progress
 
     public Task(String taskName, String taskDescription, String taskGroup, boolean status) {
         this.taskName = taskName;
